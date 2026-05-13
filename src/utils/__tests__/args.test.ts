@@ -2,8 +2,16 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { parseArgs, usage, usageForCommand } from '../args.ts';
 import { AppError } from '../errors.ts';
-import { getCliCommandNames, getSchemaCapabilityKeys } from '../command-schema.ts';
-import { listCapabilityCommands } from '../../core/capabilities.ts';
+import {
+  getCliCommandNames,
+  getCommandSchema,
+  getSchemaCapabilityKeys,
+} from '../command-schema.ts';
+import { getCommandCapability, listCapabilityCommands } from '../../core/capabilities.ts';
+import {
+  SESSION_LIFECYCLE_COMMAND_DEFINITIONS,
+  SESSION_LIFECYCLE_COMMAND_SCHEMAS,
+} from '../../commands/session-lifecycle/definition.ts';
 
 test('parseArgs recognizes command-specific flag combinations', async () => {
   const scenarios: Array<{
@@ -976,6 +984,18 @@ test('every capability command has a parser schema entry', () => {
 
 test('schema capability mappings match capability source-of-truth', () => {
   assert.deepEqual(getSchemaCapabilityKeys(), listCapabilityCommands());
+});
+
+test('session lifecycle command schemas feed parser registry', () => {
+  for (const [name, schema] of Object.entries(SESSION_LIFECYCLE_COMMAND_SCHEMAS)) {
+    assert.deepEqual(getCommandSchema(name), schema);
+  }
+});
+
+test('session lifecycle command definitions feed capability registry', () => {
+  for (const definition of SESSION_LIFECYCLE_COMMAND_DEFINITIONS) {
+    assert.deepEqual(getCommandCapability(definition.name), definition.capability);
+  }
 });
 
 test('compat mode warns and strips unsupported command flags', () => {

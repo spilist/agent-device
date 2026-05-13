@@ -1,5 +1,6 @@
 import { isApplePlatform, type DeviceInfo } from '../utils/device.ts';
 import { INTERACTION_COMMAND_CAPABILITIES } from '../commands/interactions/definition.ts';
+import { SESSION_LIFECYCLE_COMMAND_CAPABILITIES } from '../commands/session-lifecycle/definition.ts';
 
 type KindMatrix = {
   simulator?: boolean;
@@ -50,11 +51,7 @@ const COMMAND_CAPABILITY_MATRIX: Record<string, CommandCapability> = {
     linux: LINUX_NONE,
     supports: isNotMacOs,
   },
-  apps: {
-    apple: { simulator: true, device: true },
-    android: { emulator: true, device: true, unknown: true },
-    linux: LINUX_NONE,
-  },
+  ...SESSION_LIFECYCLE_COMMAND_CAPABILITIES,
   back: {
     apple: { simulator: true, device: true },
     android: { emulator: true, device: true, unknown: true },
@@ -88,11 +85,6 @@ const COMMAND_CAPABILITY_MATRIX: Record<string, CommandCapability> = {
     linux: LINUX_NONE,
     supports: (device) =>
       device.platform === 'android' || (device.platform === 'ios' && device.target !== 'tv'),
-  },
-  close: {
-    apple: { simulator: true, device: true },
-    android: { emulator: true, device: true, unknown: true },
-    linux: LINUX_DEVICE,
   },
   fill: {
     apple: { simulator: true, device: true },
@@ -145,33 +137,10 @@ const COMMAND_CAPABILITY_MATRIX: Record<string, CommandCapability> = {
     android: { emulator: true, device: true, unknown: true },
     linux: LINUX_DEVICE,
   },
-  open: {
-    apple: { simulator: true, device: true },
-    android: { emulator: true, device: true, unknown: true },
-    linux: LINUX_DEVICE,
-  },
   perf: {
     apple: { simulator: true, device: true },
     android: { emulator: true, device: true, unknown: true },
     linux: LINUX_NONE,
-  },
-  install: {
-    apple: { simulator: true, device: true },
-    android: { emulator: true, device: true, unknown: true },
-    linux: LINUX_NONE,
-    supports: isNotMacOs,
-  },
-  'install-from-source': {
-    apple: { simulator: true, device: true },
-    android: { emulator: true, device: true, unknown: true },
-    linux: LINUX_NONE,
-    supports: isNotMacOs,
-  },
-  reinstall: {
-    apple: { simulator: true, device: true },
-    android: { emulator: true, device: true, unknown: true },
-    linux: LINUX_NONE,
-    supports: isNotMacOs,
   },
   press: {
     apple: { simulator: true, device: true },
