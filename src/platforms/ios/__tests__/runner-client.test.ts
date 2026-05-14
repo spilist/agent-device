@@ -48,9 +48,9 @@ import {
   ensureXctestrun,
   resolveRunnerPerformanceBuildSettings,
   shouldDeleteRunnerDerivedRootEntry,
-  xctestrunReferencesExistingProducts,
   xctestrunReferencesProjectRoot,
 } from '../runner-xctestrun.ts';
+import { xctestrunReferencesExistingProducts } from '../runner-xctestrun-products.ts';
 import { parseRunnerResponse } from '../runner-session.ts';
 
 const iosSimulator: DeviceInfo = {
