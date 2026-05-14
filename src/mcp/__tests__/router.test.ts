@@ -67,6 +67,7 @@ test('MCP exposes help resources and workflow prompts', () => {
     (resource) => resource.uri,
   );
   assert.ok(resourceUris.includes('agent-device://help/workflow'));
+  assert.ok(resourceUris.includes('agent-device://help/rn-performance'));
 
   const prompt = handleMcpMessage({
     jsonrpc: '2.0',
@@ -81,6 +82,21 @@ test('MCP exposes help resources and workflow prompts', () => {
   const result = prompt.result as { messages: Array<{ content: { text: string } }> };
   assert.match(result.messages[0]?.content.text ?? '', /dogfood/);
   assert.match(result.messages[0]?.content.text ?? '', /SampleApp on iOS/);
+});
+
+test('MCP React Native performance prompt routes to full flow guidance', () => {
+  const prompt = handleMcpMessage({
+    jsonrpc: '2.0',
+    id: 6,
+    method: 'prompts/get',
+    params: {
+      name: 'agent-device-react-native-performance',
+    },
+  });
+
+  assert.ok(prompt && 'result' in prompt);
+  const result = prompt.result as { messages: Array<{ content: { text: string } }> };
+  assert.match(result.messages[0]?.content.text ?? '', /rn-performance/);
 });
 
 test('MCP initialize returns supported protocol version and unknown methods use JSON-RPC code', () => {

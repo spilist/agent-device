@@ -3743,6 +3743,8 @@ test('open on in-use device returns DEVICE_IN_USE before readiness checks', asyn
   expect(response?.ok).toBe(false);
   if (response && !response.ok) {
     expect(response.error.code).toBe('DEVICE_IN_USE');
+    expect(response.error.details?.hint).toContain('agent-device session list');
+    expect(response.error.details?.hint).toContain('--session busy-session');
   }
   expect(mockEnsureDeviceReady).not.toHaveBeenCalled();
 });

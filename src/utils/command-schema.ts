@@ -166,6 +166,10 @@ const AGENT_WORKFLOWS = [
     description: 'React Native performance, profiling, component tree, and renders',
   },
   {
+    label: 'help rn-performance',
+    description: 'React Native flow profiling with logs, network, and overlay handling',
+  },
+  {
     label: 'help remote',
     description: 'Remote/cloud config, tenants, leases, and local service tunnels',
   },
@@ -179,13 +183,14 @@ const AGENT_QUICKSTART_LINES = [
   'Plain snapshot reads state; snapshot -i is required to refresh interactive refs.',
   'Read-only visible/state question: use snapshot/get/is/find; use snapshot -i only when refs are needed.',
   'Truncated text/input preview: expand first with snapshot -s @e12, not get text.',
-  'RN warning/error overlays can block taps: snapshot -i, dismiss/close, then diff snapshot -i.',
+  'RN warning/error overlays can block taps: snapshot -i, dismiss/close if unrelated, then diff snapshot -i.',
   'Expo Go/dev clients: use the provided URL when given; on iOS prefer open "Expo Go" <url>; Android URL opens infer the foreground package for logs/perf when possible.',
   'Install flows: install/install-from-source first, then open the installed id with --relaunch.',
   'Text: fill \'id="field-email"\' "qa@example.com" replaces; type appends after press.',
   'Clearing text: do not use fill <target> ""; use a visible clear/reset control or report that clearing is unsupported.',
   'Android IME capture: if fill says input was captured by the keyboard/IME, inspect keyboard state and switch/disable handwriting before retrying; do not loop fill/type.',
   'Run mutating commands serially against one session; parallelize only read-only commands or separate sessions.',
+  'Before taking over a shared device, run session list and reuse the active session name when one already owns the device.',
   'Clipboard limits: iOS Allow Paste cannot be automated through XCUITest; prefill with clipboard write. Android non-ASCII should use fill/type, not raw adb input.',
   'After mutation: diff snapshot -i. Off-screen hints: scroll, then snapshot -i.',
   'Raw coordinates are fallback-only: use snapshot -i -c --json rects when iOS refs no-op or child refs are missing.',
@@ -193,6 +198,7 @@ const AGENT_QUICKSTART_LINES = [
   'Navigation: app-owned back uses back; system back uses back --system.',
   'Verification commands must name the expected text/selector; bare screenshots/snapshots are not enough.',
   'Debug evidence: logs clear --restart/mark/path; trace start ./path; trace stop ./path; network dump --include headers.',
+  'RN flow performance: help rn-performance combines React profiles, log markers, network dump, perf samples, and overlay handling.',
   'Use agent-device commands in final plans; raw platform tools, pseudo commands, and helper prose are wrong.',
   'Full operating guide: agent-device help workflow. Exploratory QA: agent-device help dogfood.',
 ] as const;
@@ -315,6 +321,7 @@ Read-only and waits:
 Navigation and gestures:
   Use scroll for lists; swipe for coordinate gestures/carousels.
   If app-owned back is ambiguous or has just misrouted, prefer a visible nav/back button ref, tab-bar ref, or deep link over repeated back/system back.
+  App-owned action sheets, menus, and camera/scan screens are normal UI. After opening one, run snapshot -i or wait for the option, press by label/ref, handle visible permission sheets through UI or platform-supported native alerts, then wait for a concrete result before returning to chat/form state.
   Keep count/pause/pattern on one swipe; flags are --count, --pause-ms, --pattern ping-pong.
   longpress duration and pinch scale/center are positional:
     agent-device longpress 300 500 800
@@ -369,6 +376,7 @@ React DevTools minimum loop:
 Escalate:
   help debugging       logs, network, alerts, traces, flaky runtime failures
   help react-devtools  React Native performance, profiling, props/state/hooks, slow renders, rerenders
+  help rn-performance React Native flow profiling with logs, network, and overlay handling
   help remote          remote/cloud config, tenant, lease, local service tunnels
   help macos           desktop, frontmost-app, menu bar surfaces
   help dogfood         exploratory QA report workflow`,
@@ -476,6 +484,53 @@ Example:
   agent-device react-devtools profile report @c5
 
 Use snapshot, screenshot, logs, network, and perf for device/app runtime evidence. Use react-devtools only when component internals or React rendering behavior matters.`,
+  },
+  'rn-performance': {
+    summary: 'React Native flow profiling with runtime evidence',
+    body: `agent-device help rn-performance
+
+Use this for large React Native app flows where the task asks for component
+performance, slow interactions, debug markers, network investigation, or a
+report tying React renders to device/runtime evidence.
+
+Minimum loop:
+  agent-device session list
+  agent-device open <app> --platform android
+  agent-device snapshot -i
+  agent-device logs clear --restart
+  agent-device logs mark "before <flow>"
+  agent-device react-devtools status
+  agent-device react-devtools wait --connected
+  agent-device react-devtools profile start
+  interact with normal agent-device commands
+  agent-device logs mark "after <slow interaction>"
+  agent-device wait text "<expected result>" 20000
+  agent-device react-devtools profile stop
+  agent-device react-devtools profile slow --limit 10
+  agent-device react-devtools profile rerenders --limit 10
+  agent-device network dump 25 --include headers
+  agent-device perf --json
+
+Rules:
+  Keep one named session for the flow and keep mutating commands serial.
+  Start the React profile immediately before the interaction being measured; stop it right after the expected state appears or the timeout is reached.
+  Place log markers before and after the slow step so logs and network entries can be aligned with the React profile timeline.
+  For 15-20s async work, use wait with the exact expected text or selector instead of repeated snapshots.
+  Use network dump for request/response timing metadata parsed from app logs; use logs path only when the parsed network view is insufficient.
+  Android runtime permission dialogs are visible UI: inspect snapshot -i and press Allow/Deny by visible label/ref. Use alert wait/accept/dismiss only where the platform supports native alerts.
+  React Native warning/error overlays belong to the app run. Treat them as findings or blockers: capture screenshot --overlay-refs, run react-devtools errors when connected, dismiss visible Dismiss/Close only if unrelated, re-snapshot, and report the overlay.
+  If Android snapshot times out because the UI never becomes idle, use screenshot as visual truth, try settings animations off, or wait briefly and retry; report the busy UI as the blocker if it persists.
+  If React DevTools cannot connect, report status and continue with logs, network, perf, screenshot, and trace evidence instead of blocking the whole flow.
+
+Report shape:
+  Produce a short table with component, evidence source, metric or symptom, likely trigger, and follow-up.
+  Separate React render offenders from network/backend waits and device frame/CPU/memory findings.
+  Include marker names and artifact paths so a human can correlate the slow interaction later.
+
+Escalate:
+  help workflow       core command loop, selectors, refs, serial mutation rules
+  help debugging      logs, network, alerts, traces, and runtime failures
+  help react-devtools component tree, props/state/hooks, slow renders, rerenders`,
   },
   remote: {
     summary: 'Remote config, tenant, lease, and remote host flow',
@@ -601,6 +656,9 @@ Rules:
   Escalate to help debugging or help react-devtools when runtime symptoms require those tools.`,
   },
 } as const satisfies Record<string, { summary: string; body: string }>;
+
+export type HelpTopicName = keyof typeof HELP_TOPICS;
+export const HELP_TOPIC_NAMES = Object.keys(HELP_TOPICS) as readonly HelpTopicName[];
 
 const FLAG_DEFINITIONS: readonly FlagDefinition[] = [
   {

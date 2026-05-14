@@ -61,6 +61,28 @@ test('verifyAndroidFilledTextInHierarchy accepts matching-length masked password
   assert.equal(verification.masked, true);
 });
 
+test('verifyAndroidFilledTextInHierarchy accepts Android sentence autocapitalization', () => {
+  const verification = verifyAndroidFilledTextInHierarchy(
+    androidInputXml({ text: 'Filed the expense' }),
+    10,
+    10,
+    'filed the expense',
+  );
+
+  assert.equal(verification.ok, true);
+});
+
+test('verifyAndroidFilledTextInHierarchy does not ignore broader case mismatches', () => {
+  const verification = verifyAndroidFilledTextInHierarchy(
+    androidInputXml({ text: 'FILED THE EXPENSE' }),
+    10,
+    10,
+    'filed the expense',
+  );
+
+  assert.equal(verification.ok, false);
+});
+
 test('fillAndroid accepts matching-length masked password verification', async () => {
   let typed = '';
   await withFillAdb(
@@ -149,6 +171,10 @@ function imeCaptureHierarchy(imeText: string): string {
 
 function passwordHierarchy(mask: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?><hierarchy><node package="com.example" class="android.widget.EditText" text="${mask}" password="true" focused="true" bounds="[0,0][200,100]"/></hierarchy>`;
+}
+
+function androidInputXml(options: { text: string }): string {
+  return `<?xml version="1.0" encoding="UTF-8"?><hierarchy><node package="com.example" class="android.widget.EditText" text="${options.text}" focused="true" bounds="[0,0][200,100]"/></hierarchy>`;
 }
 
 function focusedEditHierarchy(): string {

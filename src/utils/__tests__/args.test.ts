@@ -802,6 +802,7 @@ test('usage includes agent workflows, config, environment, and examples footers'
   assert.match(usageText, /do not use fill <target> ""/);
   assert.match(usageText, /Android IME capture: if fill says input was captured/);
   assert.match(usageText, /Run mutating commands serially against one session/);
+  assert.match(usageText, /run session list and reuse the active session name/);
   assert.match(usageText, /After mutation: diff snapshot -i/);
   assert.match(usageText, /app-owned back uses back/);
   assert.match(usageText, /logs clear --restart\/mark\/path/);
@@ -815,6 +816,10 @@ test('usage includes agent workflows, config, environment, and examples footers'
   assert.match(
     usageText,
     /help react-devtools\s+React Native performance, profiling, component tree, and renders/,
+  );
+  assert.match(
+    usageText,
+    /help rn-performance\s+React Native flow profiling with logs, network, and overlay handling/,
   );
   assert.match(usageText, /Configuration:/);
   assert.match(
@@ -857,6 +862,8 @@ test('usageForCommand resolves workflow help topic', () => {
   assert.match(help, /agent-device get attrs @e4/);
   assert.match(help, /Ambiguous find: add --first or --last/);
   assert.match(help, /report that gap instead of typing\/searching\/navigating/);
+  assert.match(help, /App-owned action sheets, menus, and camera\/scan screens are normal UI/);
+  assert.match(help, /wait for a concrete result before returning to chat\/form state/);
   assert.match(help, /If snapshot -i shows one, dismiss\/close its visible control/);
   assert.match(help, /iOS Allow Paste prompt cannot be exercised under XCUITest/);
   assert.match(help, /Empty replacement is not a supported clear-field command/);
@@ -884,6 +891,7 @@ test('usageForCommand resolves workflow help topic', () => {
   assert.match(help, /apps lookup misses the project but shows Expo Go\/dev-client/);
   assert.match(help, /metro prepare --kind expo/);
   assert.match(help, /help react-devtools/);
+  assert.match(help, /help rn-performance/);
 });
 
 test('workflow help keeps common copyable command forms', () => {
@@ -955,6 +963,21 @@ test('usageForCommand resolves react-devtools help topic', () => {
   assert.match(help, /isolated --state-dir/);
   assert.match(help, /local service tunnel/);
   assert.match(help, /Remote iOS apps attempt the legacy React DevTools websocket/);
+});
+
+test('usageForCommand resolves rn-performance help topic', () => {
+  const help = usageForCommand('rn-performance');
+  if (help === null) throw new Error('Expected rn-performance help text');
+  assert.match(help, /agent-device help rn-performance/);
+  assert.match(help, /agent-device session list/);
+  assert.match(help, /logs mark "before <flow>"/);
+  assert.match(help, /agent-device react-devtools profile start/);
+  assert.match(help, /agent-device wait text "<expected result>" 20000/);
+  assert.match(help, /agent-device network dump 25 --include headers/);
+  assert.match(help, /React Native warning\/error overlays belong to the app run/);
+  assert.match(help, /Android runtime permission dialogs are visible UI/);
+  assert.match(help, /Android snapshot times out because the UI never becomes idle/);
+  assert.match(help, /Produce a short table with component, evidence source/);
 });
 
 test('apps defaults to --all filter and allows overrides', () => {
